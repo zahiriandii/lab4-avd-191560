@@ -1,27 +1,19 @@
-import { ref,computed } from "vue";
+import { ref, computed, reactive } from 'vue';
 
-const useSearch = (items) =>
-{
-
-    const searchTerm = ref('');
-    const filters = ref(['title']);
-
-    const filteredItems = computed(() => {
-        if (!searchTerm.value.trim()) 
-            return items;
-
-        return items.filter((item)=> {
-            filters.value.some((filter)=>{
-                String(item[filter]).toLowerCase().includes(searchTerm.value.toLowerCase());
-            })
-        })
+export const useSearch = (items) => {
+  const searchTerm = ref('');
+  const filters = ref(['title','description'])
+  const filteredItems = computed(() => {
+    return items.value.filter(item => {
+      return filters.value.some(filter => {
+        return item[filter].toLowerCase().includes(searchTerm.value.toLowerCase());
+      });
     });
+  });
 
-    return {
-        searchTerm,
-        filters,
-        filteredItems,
-    }
+  return {
+    searchTerm,
+    filteredItems,
+    filters,
+  }
 }
-
-export default useSearch;

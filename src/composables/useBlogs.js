@@ -1,57 +1,46 @@
-import { reactive } from "vue";
 import { createClient } from "contentful";
-import useListAction from "./useListAction";
+import { useListActions } from "./useListAction";
+import { ref, onBeforeMount } from "vue";
 
+const client = createClient({
+  space: "hpr0uushokd4",
+  accessToken: "jwEHepvQx-kMtO7_2ldjhE4WMAsiDp3t1xxBT8aDp7U",
+});
 
-const useBlogs = () =>
-{
-    const data = reactive({
-        isLoading: false,
-        isError: null 
-    });
+export const useBlogs = () => {
+  const blogs = ref([]);
+  const isLoading = ref(false);
+  const error = ref(null);
+  const { addItem, deleteItem } = useListActions(blogs);
 
-    const client = createClient({
-        space: "",
-        accessToken: ""
-    });
+  const getBlogs = async () => {
+    isLoading.value = true;
+    error.value = null;
 
-    const initialBlogs = [];
-    const {addItem,removeItem} = useListAction(initialBlogs);
+    try {
+      const response = await client.getEntries({
+        content_type: "blogPost",
+        order: "-fields.publishDate",
+      });
 
-    const fetchBlogs = async ()=>{
-        data.isLoading = true;
-        data.error = null;
-
-        try {
-            const response = await client.getEntries({content_type:"blog"});
-            response.items.forEach(item=>{
-                addItem({
-                    title: item.fields.title ,
-                    description: item.fields.description,
-                    heroImage: item.fields.heroImage,
-                    publishDate: item.fields.publishDate,
-                    id: item.sys.id
-
-                })
-            })
-        } catch (error) {
-            data.isError = "Error fetching data";
-            console.log(error);
-        }
-        finally
-        {
-            data.isLoading = false;
-        }
+      blogs.value = response.items.map((item) => ({
+        ...item.fields,
+        id: item.fields.slug,
+      }));
+    } catch (err) {
+      error.value = err;
+    } finally {
+      isLoading.value = false;
     }
+  };
 
-    return{
-        blogs: initialBlogs,
-        addItem,
-        removeItem,
-        fetchBlogs,
-        data
-    }
+  onBeforeMount(getBlogs);
 
-
+  return {
+    blogs,
+    isLoading,
+    error,
+    addItem,
+    deleteItem,
+  };
 }
-export default useBlogs;

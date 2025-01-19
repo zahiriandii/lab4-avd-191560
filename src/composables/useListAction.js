@@ -1,26 +1,16 @@
 
-import { reactive } from "vue";
-
-const useListAction = (items = []) =>
-{
-    const blogs = reactive({
-        list: [...items]
-    });
-
-    const addItem = (item) =>
-    {
-        data.list.push(item);
-    }
-
-    const removeItem = (id) =>
-    {
-        data.list.splice(id,1);
-    }
-
+export const useListActions = (items) => {
+    const addItem = (item) => {
+      items.value.push(item);
+    };
+    const deleteItem = (id) => {
+      const index = items.value.findIndex((item) => item.id === id);
+  
+      index >= 0 && items.value.splice(index, 1);
+    };
+  
     return {
-        addItem,
-        removeItem
-    }
-}
-
-export default useListAction ;
+      addItem,
+      deleteItem,
+    };
+  }
